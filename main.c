@@ -12,6 +12,13 @@ void triggerPendSVC(void)
 	MEM32(NVIC_INT_CTRL) = NVIC_PENDSET;    //PendSVC悬起，进入PendSVC中断服务程序
 }
 
+typedef struct _BlockType_t
+{
+	unsigned long * stackPtr;
+}BlockType_t;
+
+BlockType_t * blockPtr;
+
 
 void delay(int count)
 {
@@ -19,14 +26,21 @@ void delay(int count)
 }
 
 int flag;
+unsigned long stackBuffer[1024];
+BlockType_t block;
 
 int main()
 {
+	// blockPtr -> block -> stackPtr -> stackBuffer[1024]
+	block.stackPtr = &stackBuffer[1024];
+	blockPtr = &block;
 	for(;;)
 	{
 		flag = 0;
 		delay(100);
 		flag = 1;
 		delay(100);
+		
+		triggerPendSVC();
 	}
 }
