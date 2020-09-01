@@ -3,7 +3,7 @@
 #define NVIC_SYSPRI14         0xE000ED22    //PendSV优先级配置寄存器
 #define NVIC_PENDSV_PRI       0x000000FF
 
-#define MEM32(addr)           *(volatile unsigned long *)(addr)
+#define  MEM32(addr)          *(volatile unsigned long *)(addr)
 #define  MEM8(addr)           *(volatile unsigned char *)(addr)
 	
 void triggerPendSVC(void)
@@ -15,9 +15,11 @@ void triggerPendSVC(void)
 typedef struct _BlockType_t
 {
 	unsigned long * stackPtr;
+	unsigned long * stackEndPtr;
 }BlockType_t;
 
 BlockType_t * blockPtr;
+BlockType_t ** blockPtrToPtr;
 
 
 void delay(int count)
@@ -26,14 +28,16 @@ void delay(int count)
 }
 
 int flag;
-unsigned long stackBuffer[1024];
+unsigned long stackBuffer[8];
 BlockType_t block;
 
 int main()
 {
 	// blockPtr -> block -> stackPtr -> stackBuffer[1024]
-	block.stackPtr = &stackBuffer[1024];
+	block.stackEndPtr = &stackBuffer[0];
+	block.stackPtr = &stackBuffer[8];  //&stackBuffer[1024]是这个数组的最后一个元素stackBuffer[1023]地址的下一个地址
 	blockPtr = &block;
+	blockPtrToPtr = &blockPtr; //用以查看blockPtr的地址
 	for(;;)
 	{
 		flag = 0;
