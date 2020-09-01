@@ -33,9 +33,9 @@ BlockType_t block;
 
 int main()
 {
-	// blockPtr -> block -> stackPtr -> stackBuffer[1024]
+	// blockPtrToPtr -> blockPtr -> block -> stackPtr -> stackBuffer[8]
 	block.stackEndPtr = &stackBuffer[0];
-	block.stackPtr = &stackBuffer[8];  //&stackBuffer[1024]是这个数组的最后一个元素stackBuffer[1023]地址的下一个地址
+	block.stackPtr = &stackBuffer[8];  //&stackBuffer[8]是这个数组的最后一个元素stackBuffer[7]地址的下一个地址
 	blockPtr = &block;
 	blockPtrToPtr = &blockPtr; //用以查看blockPtr的地址
 	for(;;)
