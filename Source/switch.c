@@ -11,24 +11,28 @@
 	
 __asm void PendSV_Handler(void)
 {
-	IMPORT blockPtr
 	
-	LDR R0, = blockPtr //把blockPtr的地址加载到R0寄存器，现在R0存放的是blockPtr的地址
-	LDR R0, [R0]       //把blockPt这个地址存放的block结构体的地址加载到R0,现在R0存放的是block结构体的地址，也就是stackPtr的地址
-	LDR R0, [R0]       //把stackPtr存放的四个字节内容(stackBuffer[8]的地址)加载到R0
+	//进入异常的时候会把xPSR PC(R15) LR(R14) R12, R3-R0的值自动压入PSP堆栈
+	IMPORT currentTask
+	IMPORT nextTask
 	
-	STMDB R0!, {R4-R11}
+	MRS R0, PSP                       //把PSP寄存器的值保存到R0里   MRS: 状态寄存器到通用寄存器的传送指令。
+	CBZ R0, PendSV_Handler_nosave     //判断R0的值是否为0，是的话就转到PendSV_Handler_nosave
+	NOP
 	
-	LDR R1, = blockPtr
-	LDR R1, [R1]
-	STR R0, [R1]
+PendSV_Handler_nosave
+	LDR R0, = currentTask  //将currentTask的地址放到R0
+	LDR R1, = nextTask     //将nextTask的地址放到R1
+	LDR R2, [R1]           //将存储器地址为R1的字数据读入寄存器R2,也就是nextTask所指向的task的地址
+	STR R2, [R0]           //将R2寄存器的值写入到currentTask这个地址，也就是currentTask现在指向的task是之前nextTask所指向的task
 	
-	ADD R4, R4, #1
-	ADD R5, R5, #1
+	LDR R0, [R2]           //从currentTask里取出它所指向的task这个任务所指向的stack地址
+	LDMIA R0!, {R4-R11}    //将currentTask的task的stack里保存的R4-R11的值弹出到寄存器R4-R11
 	
-	LDMIA R0!, {R4-R11}
+	MSR PSP, R0            //把R0现在的值，也就是栈顶指针，写入到PSP  MSR: 通用寄存器到状态寄存器的传送指令。
+	ORR LR, LR, #0x04      //设置退出时使用PSP作为使用的堆栈，因为默认使用MSP
 	
-	BX LR 
+	BX LR                  //退出异常的时候会把PSP堆栈的内容弹出到这几个寄存器：xPSR PC(R15) LR(R14) R12, R3-R0
 }
 
 void tTaskRunFirst()

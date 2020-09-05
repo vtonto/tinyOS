@@ -14,7 +14,6 @@ extern tTask * currentTask;
 extern tTask * nexttTask;
 
 void tTaskRunFirst(void);
-void tTaskSched(void);
 void tTaskSwitch(void);
 
 #endif

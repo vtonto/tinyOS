@@ -55,12 +55,15 @@ int task1Flag;
 
 void task1Entry(void * param)
 {
+	unsigned long value = *(unsigned long *)param;
+	value++;
 	for(;;)
 	{
 		task1Flag =0;
 		delay(100);
 		task1Flag =1;
 		delay(100);
+		tTaskSched();
 	}
 }
 
@@ -68,12 +71,15 @@ int task2Flag;
 
 void task2Entry(void * param)
 {
+	unsigned long value = *(unsigned long *)param;
+	value++;
 	for(;;)
 	{
 		task2Flag =0;
 		delay(100);
 		task2Flag =1;
 		delay(100);
+		tTaskSched();
 	}
 }
 
