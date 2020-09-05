@@ -1,4 +1,9 @@
 #include "tinyOS.h"
+
+tTask * currentTask;
+tTask * nextTask;
+tTask * taskTable[2];
+
 #define NVIC_INT_CTRL         0xE000Ed04    //ÖĞ¶Ï×´Ì¬¼°¿ØÖÆ¼Ä´æÆ÷
 #define NVIC_PENDSET          0x10000000
 #define NVIC_SYSPRI14         0xE000ED22    //PendSVÓÅÏÈ¼¶ÅäÖÃ¼Ä´æÆ÷
@@ -36,6 +41,16 @@ void tTaskInit(tTask * task, void (*entry), void * param, tTaskStack * stack)
     *(--stack) = (unsigned long)0x04;     // R04
 	
 	task->stack = stack;
+}
+
+void tTaskSched()
+{
+	if(currentTask == taskTable[0])
+		nextTask = taskTable[1];
+	else
+		nextTask = taskTable[0];
+	
+	tTaskSwitch();
 }
 
 
@@ -81,4 +96,13 @@ int main()
 {
 	tTaskInit(&tTask1, task1Entry, (void *)0x11111111, &task1Env[1024]);
 	tTaskInit(&tTask2, task2Entry, (void *)0x22222222, &task2Env[1024]);
+	
+	taskTable[0] = &tTask1;
+	taskTable[1] = &tTask2;
+	
+	nextTask = taskTable[0];
+	
+	tTaskRunFirst();
+	
+	return 0;
 }
