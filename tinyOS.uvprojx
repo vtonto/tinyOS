@@ -385,12 +385,12 @@
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\main.c</FilePath>
+              <FilePath>.\Source\main.c</FilePath>
             </File>
             <File>
               <FileName>switch.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\switch.c</FilePath>
+              <FilePath>.\Source\switch.c</FilePath>
             </File>
           </Files>
         </Group>
