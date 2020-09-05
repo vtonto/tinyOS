@@ -12,13 +12,17 @@
 __asm void PendSV_Handler(void)
 {
 	
-	//进入异常的时候会把xPSR PC(R15) LR(R14) R12, R3-R0的值自动压入PSP堆栈
+	//进入异常的时候会把xPSR PC(R15) LR(R14) R12, R3-R0的值自动压入currentTask的堆栈(PSP)
 	IMPORT currentTask
 	IMPORT nextTask
 	
 	MRS R0, PSP                       //把PSP寄存器的值保存到R0里   MRS: 状态寄存器到通用寄存器的传送指令。
 	CBZ R0, PendSV_Handler_nosave     //判断R0的值是否为0，是的话就转到PendSV_Handler_nosave
-	NOP
+	
+	STMDB R0, {R4-R11}     //R0现在等于PSP，也就是currentTask的堆栈栈顶指针，将R4-R11保存到currentTask的堆栈
+	LDR R1, =currentTask   //把currentTask的地址给R1
+	LDR R1, [R1]           //从R1中取出currentTask所指向的task的地址,task的地址与stack的地址相同
+	STR R0, [R1]           //将R0现在的值(栈顶指针)写入到R1的地址所对应的内存单元，也就是task的stack指针(指向堆栈)
 	
 PendSV_Handler_nosave
 	LDR R0, = currentTask  //将currentTask的地址放到R0
