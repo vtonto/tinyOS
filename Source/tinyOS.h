@@ -11,7 +11,7 @@ typedef struct _tTask
 }tTask;
 
 extern tTask * currentTask;
-extern tTask * nexttTask;
+extern tTask * nextTask;
 
 void tTaskRunFirst(void);
 void tTaskSwitch(void);
