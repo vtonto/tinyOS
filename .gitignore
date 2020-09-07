@@ -1,6 +1,4 @@
 Objects/
 Listings/
-*.scvd
-*.uvoptx
-*.uvprojx
-*.XJTU
+Pic/
+Project/
