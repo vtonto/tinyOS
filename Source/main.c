@@ -9,11 +9,15 @@ tTask * taskTable[2];
 tTask tTask1;
 tTask tTask2;
 
-tTaskStack task1Env[1024];
-tTaskStack task2Env[1024];
+tTaskStack task1Stack[1024];
+tTaskStack task2Stack[1024];
 
 int task1Flag;
 int task2Flag;
+
+tTask tTaskIdle;
+tTaskStack taskIdleStack[1024];
+tTask * idleTask;
 
 void tSetSysTickPeriod(uint32_t ms)
 {
@@ -106,15 +110,25 @@ void task2Entry(void * param)
 	}
 }
 
+void taskIdleEntry()
+{
+	for(;;)
+	{}
+}
+
+
 int main()
 {
 	tSetSysTickPeriod(10);
 	
-	tTaskInit(&tTask1, task1Entry, (void *)0x11111111, &task1Env[1024]);
-	tTaskInit(&tTask2, task2Entry, (void *)0x22222222, &task2Env[1024]);
+	tTaskInit(&tTask1, task1Entry, (void *)0x11111111, &task1Stack[1024]);
+	tTaskInit(&tTask2, task2Entry, (void *)0x22222222, &task2Stack[1024]);
+	
+	tTaskInit(&tTaskIdle, taskIdleEntry, (void *)0x33333333, &taskIdleStack[1024]);
 	
 	taskTable[0] = &tTask1;
 	taskTable[1] = &tTask2;
+	idleTask = &tTaskIdle;
 	
 	nextTask = taskTable[0];
 	
