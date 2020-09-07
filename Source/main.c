@@ -39,23 +39,29 @@ void SysTick_Handler()
 void tTaskSystemTickHandler(void)
 {
 	int i;
+	uint32_t status = tTaskEnterCritical();
 	for(i=0; i<2; i++)
 	{
 		if(taskTable[i]->delayTicks >0 )
 		    taskTable[i]->delayTicks--;
 	}
+	tTaskExitCritical(status);
 	tickCount++;
 	tTaskSchedule();
 }
 
 void tTaskDelay(uint32_t delay)
 {
+	uint32_t status = tTaskEnterCritical();
 	currentTask->delayTicks = delay * 0.1;
+	tTaskExitCritical(status);
+	
 	tTaskSchedule();
 }
 
 void tTaskSchedule()
 {
+	uint32_t status = tTaskEnterCritical();
 	if(currentTask == idleTask)
 	{
 		if(taskTable[0]->delayTicks ==0)
@@ -68,6 +74,7 @@ void tTaskSchedule()
 		}
 		else
 		{
+			tTaskExitCritical(status);
 			return;
 		}
 	}
@@ -83,6 +90,7 @@ void tTaskSchedule()
 		}
 		else
 		{
+			tTaskExitCritical(status);
 			return;
 		}
 	}
@@ -98,9 +106,12 @@ void tTaskSchedule()
 		}
 		else
 		{
+			tTaskExitCritical(status);
 			return;
 		}
 	}
+	
+	tTaskExitCritical(status);
 	
 	tTaskSwitch();
 }
