@@ -108,6 +108,11 @@ void tTaskDelay(uint32_t delay)
 void tTaskSchedule()
 {
 	uint32_t status = tTaskEnterCritical();
+	if(scheduleLockCount >0)
+	{
+	    tTaskExitCritical(status);
+		return;	
+	}
 	if(currentTask == idleTask)
 	{
 		if(taskTable[0]->delayTicks ==0)
