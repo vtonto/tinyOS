@@ -11,32 +11,40 @@
 	
 __asm void PendSV_Handler(void)
 {
-	
-	//进入异常的时候会把xPSR PC(R15) LR(R14) R12, R3-R0的值自动压入currentTask的堆栈(PSP)
+	/*在进入中断时编译器自动保存xPSR PC(R15) LR(R14) R12, R3-R0到PSP栈顶指针所指向的存储空间*/
+    
 	IMPORT currentTask
 	IMPORT nextTask
 	
-	MRS R0, PSP                       //把PSP寄存器的值保存到R0里   MRS: 状态寄存器到通用寄存器的传送指令。
-	CBZ R0, PendSV_Handler_nosave     //判断R0的值是否为0，是的话就转到PendSV_Handler_nosave
+	MRS R0, PSP                          // 把PSP的值放到R0
+	CBZ R0, PendSV_Handler_nosave        // 判断R0的值是否为0，如果为0就是第一个任务，不用保护现场
 	
-	STMDB R0, {R4-R11}                //R0现在等于PSP，也就是currentTask的堆栈栈顶指针，将R4-R11保存到currentTask的堆栈
-	LDR R1, =currentTask              //把currentTask的地址给R1
-	LDR R1, [R1]                      //从R1中取出currentTask所指向的task的地址,task的地址与stack的地址相同
-	STR R0, [R1]                      //将R0现在的值(栈顶指针)写入到R1的地址所对应的内存单元，也就是task的stack指针(指向堆栈)
+	/***这一部分用来保存当前任务的寄存器R4-R11***/
+	STMDB R0!, {R4-R11}                  // 把R4-R11的指压入PSP所指向的堆栈空间,压完后R0的指指向栈顶，值已改变
+	
+    /***把压栈完成后的栈顶指针放到currentTask的task->stack里****/
+	LDR R1, =currentTask                 // 把currentTask的地址放到R1               
+	LDR R1, [R1]                         // 把currentTask的地址存放的内容放到R1,也就是currentTask所指向的task的地址，也就是该task结构体的stack地址
+	STR R0, [R1]                         // 把R0的指(当前栈顶指针)放入到R1存放的地址所指向的内存空间，也就是currentTask的task->stack指向的堆栈空间
 	
 PendSV_Handler_nosave
-	LDR R0, = currentTask             //将currentTask的地址放到R0
-	LDR R1, = nextTask                //将nextTask的地址放到R1
-	LDR R2, [R1]                      //将存储器地址为R1的字数据读入寄存器R2,也就是nextTask所指向的task的地址
-	STR R2, [R0]                      //将R2寄存器的值写入到currentTask这个地址，也就是currentTask现在指向的task是之前nextTask所指向的task
 	
-	LDR R0, [R2]                      //从currentTask里取出它所指向的task这个任务所指向的stack地址
-	LDMIA R0!, {R4-R11}               //将currentTask的task的stack里保存的R4-R11的值弹出到寄存器R4-R11
+	/****这一部分用来将currentTask切换到nextTask****/
+	LDR R0, =currentTask                 // 把currentTask的地址放到R0
+	LDR R1, =nextTask                    // 把nextTask的地址放到R1
+	LDR R1, [R1]                         // 从R1存放的地址取出nextTask所指向的task的地址，放到R1
+	STR R1, [R0]                         // 把R1存放的task的地址放到currentTask地址的内存空间
 	
-	MSR PSP, R0                       //把R0现在的值，也就是栈顶指针，写入到PSP  MSR: 通用寄存器到状态寄存器的传送指令。
-	ORR LR, LR, #0x04                 //设置退出时使用PSP作为使用的堆栈，因为默认使用MSP
-	
-	BX LR                             //退出异常的时候会把PSP堆栈的内容弹出到这几个寄存器：xPSR PC(R15) LR(R14) R12, R3-R0
+	/****这一部分用来弹出堆栈空间保存的R4-R11的指到相应的寄存器****/
+	LDR R0, [R1]                         // 把R1(存放的是currentTask所指向的task的地址)地址所指向内容(堆栈指针)放到R0
+    LDMIA R0!, {R4-R11}                  // 把R0所指向的堆栈空间的内容弹出到R4-R11,完成后堆栈指针改变
+ 
+	/****这一部分用来保存弹栈后改变的栈顶指针****/
+	MSR PSP, R0                          //把R0现在的值，也就是栈顶指针，写入到PSP  MSR: 通用寄存器到状态寄存器的传送指令。
+	ORR LR, LR, #0x04                    //设置退出时使用PSP作为使用的堆栈，因为默认使用MSP
+
+	BX LR                                //退出异常的时候会把PSP堆栈的内容弹出到这几个寄存器：xPSR PC(R15) LR(R14) R12, R3-R0
+
 }
 
 void tTaskRunFirst()

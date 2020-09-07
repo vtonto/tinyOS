@@ -1,8 +1,36 @@
 #include "tinyOS.h"
+#include "ARMCM3.h"
 
 tTask * currentTask;
 tTask * nextTask;
 tTask * taskTable[2];
+
+
+tTask tTask1;
+tTask tTask2;
+
+tTaskStack task1Env[1024];
+tTaskStack task2Env[1024];
+
+int task1Flag;
+int task2Flag;
+
+void tSetSysTickPeriod(uint32_t ms)
+{
+	SysTick->LOAD = ms * SystemCoreClock /1000 -1;              // …Ë÷√÷ÿ‘ÿºƒ¥Ê∆˜
+	NVIC_SetPriority(SysTick_IRQn, (1 << __NVIC_PRIO_BITS)-1);
+	SysTick->VAL =0;
+	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |
+	                SysTick_CTRL_TICKINT_Msk |
+	                SysTick_CTRL_ENABLE_Msk;
+}
+
+void SysTick_Handler()
+{
+	tTaskSchedule();
+}
+
+
 
 void tTaskInit(tTask * task, void (*entry), void * param, tTaskStack * stack)
 {
@@ -27,9 +55,10 @@ void tTaskInit(tTask * task, void (*entry), void * param, tTaskStack * stack)
     *(--stack) = (unsigned long)0x04;     // R04
 	
 	task->stack = stack;
+	//task->delayTicks =0;
 }
 
-void tTaskSched()
+void tTaskSchedule()
 {
 	if(currentTask == taskTable[0])
 		nextTask = taskTable[1];
@@ -45,41 +74,29 @@ void delay(int count)
 	while(--count > 0);
 }
 
-tTask tTask1;
-tTask tTask2;
-
-tTaskStack task1Env[1024];
-tTaskStack task2Env[1024];
-
-int task1Flag;
 
 void task1Entry(void * param)
 {
-	unsigned long value = *(unsigned long *)param;
-	value++;
+	tSetSysTickPeriod(10);
 	for(;;)
 	{
-		task1Flag =0;
-		delay(100);
 		task1Flag =1;
 		delay(100);
-		tTaskSched();
+		task1Flag =0;
+		delay(100);
 	}
 }
 
-int task2Flag;
+
 
 void task2Entry(void * param)
 {
-	unsigned long value = *(unsigned long *)param;
-	value++;
 	for(;;)
 	{
-		task2Flag =0;
-		delay(100);
 		task2Flag =1;
 		delay(100);
-		tTaskSched();
+		task2Flag =0;
+		delay(100);
 	}
 }
 
