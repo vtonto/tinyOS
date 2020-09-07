@@ -14,6 +14,10 @@ typedef struct _tTask
 extern tTask * currentTask;
 extern tTask * nextTask;
 
+void task1Entry(void * param);
+void task2Entry(void * param);
+void taskIdleEntry(void);
+
 void tTaskInit(tTask * task, void (*entry), void * param, tTaskStack * stack);
 void tTaskRunFirst(void);
 void tTaskSwitch(void);

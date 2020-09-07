@@ -20,6 +20,52 @@ tTaskStack taskIdleStack[1024];
 tTask * idleTask;
 
 int tickCount;
+int scheduleLockCount;
+
+int main()
+{
+	tSetSysTickPeriod(10);
+	
+	tTaskInit(&tTask1, task1Entry, (void *)0x11111111, &task1Stack[1024]);
+	tTaskInit(&tTask2, task2Entry, (void *)0x22222222, &task2Stack[1024]);
+	
+	tTaskInit(&tTaskIdle, taskIdleEntry, (void *)0x33333333, &taskIdleStack[1024]);
+	
+	taskTable[0] = &tTask1;
+	taskTable[1] = &tTask2;
+	idleTask = &tTaskIdle;
+	
+	nextTask = taskTable[0];
+	
+	tTaskRunFirst();
+	
+	return 0;
+}
+
+void tTaskScheduleLockInit()
+{
+	scheduleLockCount =0;
+}
+
+void tScheduleLockEnable()
+{
+	uint32_t status = tTaskEnterCritical();
+	if(scheduleLockCount < 255)
+	{
+	    scheduleLockCount++;
+	}
+	tTaskExitCritical(status);
+}
+
+void tScheduleLockDisable()
+{
+	uint32_t status = tTaskEnterCritical();
+	if(scheduleLockCount >0)
+	{
+		scheduleLockCount--;
+	}
+	tTaskExitCritical(status);
+}
 
 void tSetSysTickPeriod(uint32_t ms)
 {
@@ -147,12 +193,13 @@ void task1Entry(void * param)
 	for(;;)
 	{
 		int var;
-		uint32_t status = tTaskEnterCritical();
+		tScheduleLockDisable();
 		var = tickCount;
 		task1Flag =1;
+		var++;
 		tTaskDelay(10);	
-		tickCount = var +2;
-		tTaskExitCritical(status);
+		tickCount = var;
+		tScheduleLockEnable();
 		
 		task1Flag =0;
 		tTaskDelay(10);
@@ -174,25 +221,4 @@ void taskIdleEntry()
 {
 	for(;;)
 	{}
-}
-
-
-int main()
-{
-	tSetSysTickPeriod(10);
-	
-	tTaskInit(&tTask1, task1Entry, (void *)0x11111111, &task1Stack[1024]);
-	tTaskInit(&tTask2, task2Entry, (void *)0x22222222, &task2Stack[1024]);
-	
-	tTaskInit(&tTaskIdle, taskIdleEntry, (void *)0x33333333, &taskIdleStack[1024]);
-	
-	taskTable[0] = &tTask1;
-	taskTable[1] = &tTask2;
-	idleTask = &tTaskIdle;
-	
-	nextTask = taskTable[0];
-	
-	tTaskRunFirst();
-	
-	return 0;
 }
