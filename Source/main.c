@@ -19,6 +19,8 @@ tTask tTaskIdle;
 tTaskStack taskIdleStack[1024];
 tTask * idleTask;
 
+int tickCount;
+
 void tSetSysTickPeriod(uint32_t ms)
 {
 	SysTick->LOAD = ms * SystemCoreClock /1000 -1;              // ÉèÖÃÖØÔØ¼Ä´æÆ÷
@@ -42,7 +44,7 @@ void tTaskSystemTickHandler(void)
 		if(taskTable[i]->delayTicks >0 )
 		    taskTable[i]->delayTicks--;
 	}
-	
+	tickCount++;
 	tTaskSchedule();
 }
 
@@ -133,8 +135,14 @@ void task1Entry(void * param)
 {
 	for(;;)
 	{
+		int var;
+		uint32_t status = tTaskEnterCritical();
+		var = tickCount;
 		task1Flag =1;
-		tTaskDelay(10);
+		tTaskDelay(10);	
+		tickCount = var +2;
+		tTaskExitCritical(status);
+		
 		task1Flag =0;
 		tTaskDelay(10);
 	}

@@ -23,5 +23,8 @@ void tSetSysTickPeriod(uint32_t ms);
 void tTaskSystemTickHandler(void);
 void tTaskDelay(uint32_t delay);
 
+uint32_t tTaskEnterCritical(void);
+void tTaskExitCritical(uint32_t status);
+
 #endif
 

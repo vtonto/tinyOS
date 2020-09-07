@@ -59,3 +59,15 @@ void tTaskSwitch()
 {
 	MEM32(NVIC_INT_CTRL) = NVIC_PENDSET;    //PendSVC悬起，进入PendSVC中断服务程序
 }
+
+uint32_t tTaskEnterCritical()
+{
+	uint32_t primask = __get_PRIMASK();
+	__disable_irq();
+	return primask;
+}
+
+void tTaskExitCritical(uint32_t status)
+{
+	__set_PRIMASK(status);
+}
