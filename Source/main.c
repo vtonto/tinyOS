@@ -27,10 +27,36 @@ void tSetSysTickPeriod(uint32_t ms)
 
 void SysTick_Handler()
 {
+	tTaskSystemTickHandler();
+}
+
+void tTaskSystemTickHandler(void)
+{
+	int i;
+	for(i=0; i<2; i++)
+	{
+		if(taskTable[i]->delayTicks >0 )
+		    taskTable[i]->delayTicks--;
+	}
+	
 	tTaskSchedule();
 }
 
+void tTaskDelay(uint32_t delay)
+{
+	currentTask->delayTicks = delay * 0.1;
+	tTaskSchedule();
+}
 
+void tTaskSchedule()
+{
+	if(currentTask == taskTable[0])
+		nextTask = taskTable[1];
+	else
+		nextTask = taskTable[0];
+	
+	tTaskSwitch();
+}
 
 void tTaskInit(tTask * task, void (*entry), void * param, tTaskStack * stack)
 {
@@ -55,54 +81,35 @@ void tTaskInit(tTask * task, void (*entry), void * param, tTaskStack * stack)
     *(--stack) = (unsigned long)0x04;     // R04
 	
 	task->stack = stack;
-	//task->delayTicks =0;
+	task->delayTicks =0;
 }
-
-void tTaskSchedule()
-{
-	if(currentTask == taskTable[0])
-		nextTask = taskTable[1];
-	else
-		nextTask = taskTable[0];
-	
-	tTaskSwitch();
-}
-
-
-void delay(int count)
-{
-	while(--count > 0);
-}
-
 
 void task1Entry(void * param)
 {
-	tSetSysTickPeriod(10);
 	for(;;)
 	{
 		task1Flag =1;
-		delay(100);
+		tTaskDelay(10);
 		task1Flag =0;
-		delay(100);
+		tTaskDelay(10);
 	}
 }
-
-
 
 void task2Entry(void * param)
 {
 	for(;;)
 	{
 		task2Flag =1;
-		delay(100);
+		tTaskDelay(10);
 		task2Flag =0;
-		delay(100);
+		tTaskDelay(10);
 	}
 }
 
-
 int main()
 {
+	tSetSysTickPeriod(10);
+	
 	tTaskInit(&tTask1, task1Entry, (void *)0x11111111, &task1Env[1024]);
 	tTaskInit(&tTask2, task2Entry, (void *)0x22222222, &task2Env[1024]);
 	
