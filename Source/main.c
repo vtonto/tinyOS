@@ -54,10 +54,51 @@ void tTaskDelay(uint32_t delay)
 
 void tTaskSchedule()
 {
-	if(currentTask == taskTable[0])
-		nextTask = taskTable[1];
+	if(currentTask == idleTask)
+	{
+		if(taskTable[0]->delayTicks ==0)
+		{
+			nextTask = taskTable[0];
+		}
+		else if(taskTable[1]->delayTicks ==0)
+		{
+			nextTask = taskTable[1];
+		}
+		else
+		{
+			return;
+		}
+	}
+	else if(currentTask == taskTable[0])
+	{
+		if(taskTable[1]->delayTicks ==0)
+		{
+			nextTask = taskTable[1];
+		}
+		else if(taskTable[0]->delayTicks !=0)
+		{
+			nextTask = idleTask;
+		}
+		else
+		{
+			return;
+		}
+	}
 	else
-		nextTask = taskTable[0];
+	{
+		if(taskTable[0]->delayTicks ==0)
+		{
+			nextTask = taskTable[1];
+		}
+		else if(taskTable[1]->delayTicks !=0)
+		{
+			nextTask = idleTask;
+		}
+		else
+		{
+			return;
+		}
+	}
 	
 	tTaskSwitch();
 }
