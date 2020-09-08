@@ -19,7 +19,6 @@ tTask tTaskIdle;
 tTaskStack taskIdleStack[1024];
 tTask * idleTask;
 
-int tickCount;
 int scheduleLockCount;
 
 int main()
@@ -92,7 +91,6 @@ void tTaskSystemTickHandler(void)
 		    taskTable[i]->delayTicks--;
 	}
 	tTaskExitCritical(status);
-	tickCount++;
 	tTaskSchedule();
 }
 
@@ -197,13 +195,9 @@ void task1Entry(void * param)
 {
 	for(;;)
 	{
-		int var;
 		tScheduleLockDisable();
-		var = tickCount;
 		task1Flag =1;
-		var++;
 		tTaskDelay(10);	
-		tickCount = var;
 		tScheduleLockEnable();
 		
 		task1Flag =0;
