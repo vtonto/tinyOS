@@ -43,9 +43,24 @@ int main()
 	return 0;
 }
 
+tList list;
+tNode node[8];
 
 void task1Entry(void * param)
 {
+	int i=0;
+	tListInit(&list);
+	for(i=0; i<8; i++)
+	{
+		tNodeInit(&node[i]);
+		tListAddFirst(&list, &node[i]);
+	}
+	
+	for(i=0; i<8; i++)
+	{
+		tListRemoveFirst(&list);
+	}
+	
 	for(;;)
 	{
 		task1Flag =1;
