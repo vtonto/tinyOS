@@ -25,20 +25,20 @@ typedef struct _tList
 	uint32_t nodeCount;
 }tList;
 
-#define firstNode       headNode->nextNode
-#define lastNode        headNode->preNode
+#define firstNode       headNode.nextNode
+#define lastNode        headNode.preNode
 
 void tNodeInit(tNode * node);
 void tListInit(tList * list);
 uint32_t tListCount(tList * list);
 tNode * tListFirstNode(tList * list);
 tNode * tListLastNode(tList * list);
-tNode * tListPreNode(tList * list);
-tNode * tListNextNode(tList * list);
+tNode * tListPreNode(tNode * node);
+tNode * tListNextNode(tNode * node);
 void tListRemoveAll(tList * list);
 tNode * tListRemoveFirst(tList * list);
 void tListRemoveNode(tList * list, tNode * node);
 void tListAddFirst(tList * list, tNode * node);
 void tListAddLast(tList * list, tNode * node);
-void tListInsertAfter(tList * list, tNode nodeAfter, tNode * nodeToInsert);
+void tListInsertAfter(tList * list, tNode * nodeAfter, tNode * nodeToInsert);
 #endif
