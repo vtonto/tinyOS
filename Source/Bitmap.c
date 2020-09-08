@@ -15,7 +15,7 @@ void tBitmapClear(tBitmap * Bitmap, uint32_t pos)
 	Bitmap->bitmap &= ~(1 << pos);
 }
 
-uint32_t tBitmapGetFirstSet(tBitmap * Bitmap, uint8_t pos)
+uint32_t tBitmapGetFirstSet(tBitmap * Bitmap)
 {
 	static const uint8_t quickFindTable[]=
 	{

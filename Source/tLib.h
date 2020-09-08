@@ -10,7 +10,7 @@ typedef struct
 void tBitmapInit(tBitmap * Bitmap);
 void tBitmapSet(tBitmap * Bitmap, uint32_t pos);
 void tBitmapClear(tBitmap * Bitmap, uint32_t pos);
-uint32_t tBitmapGetFirstSet(tBitmap * Bitmap, uint8_t pos);
+uint32_t tBitmapGetFirstSet(tBitmap * Bitmap);
 uint32_t tBitmapPosCount(void);
 
 #endif

@@ -191,15 +191,29 @@ void tTaskInit(tTask * task, void (*entry), void * param, tTaskStack * stack)
 	task->delayTicks =0;
 }
 
+int firstSet;
 void task1Entry(void * param)
 {
 	for(;;)
 	{
+		int i;
+		tBitmap Bitmap;
+		tBitmapInit(&Bitmap);
+		for(i= tBitmapPosCount() -1; i>=0; i--)
+		{
+			tBitmapSet(&Bitmap, i);
+			firstSet = tBitmapGetFirstSet(&Bitmap);
+		}
+		
+		for(i=0; i < tBitmapPosCount(); i++)
+		{
+			tBitmapClear(&Bitmap, i);
+			firstSet = tBitmapGetFirstSet(&Bitmap);
+		}
 		tScheduleLockDisable();
 		task1Flag =1;
 		tTaskDelay(10);	
 		tScheduleLockEnable();
-		
 		task1Flag =0;
 		tTaskDelay(10);
 	}
