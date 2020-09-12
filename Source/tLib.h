@@ -25,6 +25,8 @@ typedef struct _tList
 	uint32_t nodeCount;
 }tList;
 
+#define tNodeParent(node, parent, name)   (parent *)((uint32_t)node - (uint32_t)&((parent *)0)->name)
+
 #define firstNode       headNode.nextNode
 #define lastNode        headNode.preNode
 

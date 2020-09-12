@@ -132,15 +132,20 @@ void SysTick_Handler()
 
 void tTaskSystemTickHandler(void)
 {
-	int i;
+	tNode * node;
+	
 	uint32_t status = tTaskEnterCritical();
-	for(i=0; i<TINYOS_PRO_COUNT; i++)
+	
+	for(node = taskDelayList.firstNode; node != &(taskDelayList.headNode); node = taskDelayList.firstNode)
 	{
-		if(taskTable[i]->delayTicks >0 )
-		    taskTable[i]->delayTicks--;
-		else
-			tBitmapSet(&taskProBitmap, i);
+		tTask * task = tNodeParent(node, tTask, delayNode);
+		if(--task->delayTicks == 0)
+		{
+			tTimeTaskWake(task);
+			tTaskScheduleReady(task);
+		}
 	}
+
 	tTaskExitCritical(status);
 	tTaskSchedule();
 }
@@ -151,8 +156,8 @@ void tTaskSystemTickHandler(void)
 void tTaskDelay(uint32_t delay)
 {
 	uint32_t status = tTaskEnterCritical();
-	currentTask->delayTicks = delay * 0.1;
-	tBitmapClear(&taskProBitmap, currentTask->prio);
+	tTimeTaskWait(currentTask, delay);
+	tTaskScheduleUnReady(currentTask);
 	tTaskExitCritical(status);
 	
 	tTaskSchedule();

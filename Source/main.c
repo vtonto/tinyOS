@@ -27,6 +27,7 @@ int main()
 {
 	tSetSysTickPeriod(10);
 	tTaskScheduleInit();
+	tTaskDelayListInit();
 	
 	tTaskInit(&tTask1, task1Entry, (void *)0x11111111, 0, &task1Stack[1024]);
 	tTaskInit(&tTask2, task2Entry, (void *)0x22222222, 1, &task2Stack[1024]);
@@ -48,20 +49,7 @@ tList list;
 tNode node[8];
 
 void task1Entry(void * param)
-{
-	int i=0;
-	tListInit(&list);
-	for(i=0; i<8; i++)
-	{
-		tNodeInit(&node[i]);
-		tListAddFirst(&list, &node[i]);
-	}
-	
-	for(i=0; i<8; i++)
-	{
-		tListRemoveFirst(&list);
-	}
-	
+{	
 	for(;;)
 	{
 		task1Flag =1;
