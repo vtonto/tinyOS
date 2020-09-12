@@ -7,11 +7,16 @@
 
 typedef uint32_t tTaskStack;
 
+#define TINYOS_TASK_STATE_RDY              0
+#define TINYOS_TASK_STATE_DELAY     (1 << 1)
+
 typedef struct _tTask
 {
 	tTaskStack * stack;
 	uint32_t delayTicks;
 	uint32_t prio;
+	tNode delayNode;
+	uint32_t state;
 }tTask;
 
 extern tTask * currentTask;
@@ -38,6 +43,12 @@ void tScheduleLockDisable(void);
 void tScheduleLockEnable(void);
 
 tTask * tTaskHighestReady(void);
+
+void tTaskDelayListInit(void);
+void tTimeTaskWait(tTask * task, uint32_t ticks);
+void tTimeTaskWake(tTask * task);
+void tTaskScheduleReady(tTask * task);
+void tTaskScheduleUnReady(tTask * task);
 
 #endif
 
