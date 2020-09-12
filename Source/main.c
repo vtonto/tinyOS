@@ -6,6 +6,7 @@ tTask * nextTask;
 
 tTask * taskTable[TINYOS_PRO_COUNT];
 tBitmap taskProBitmap;
+tList taskDelayList;
 
 tTask tTask1;
 tTask tTask2;

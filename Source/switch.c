@@ -12,7 +12,7 @@
 extern int scheduleLockCount;
 extern tTask * taskTable[TINYOS_PRO_COUNT];
 extern tBitmap taskProBitmap;
-extern tList tTaskDelayList;
+extern tList taskDelayList;
 	
 __asm void PendSV_Handler(void)
 {
@@ -211,3 +211,34 @@ tTask * tTaskHighestReady()
 }
 
 /**************ÑÓÊ±¶ÓÁÐ****************/
+void tTaskDelayListInit()
+{
+	tListInit(&taskDelayList);
+}
+
+void tTimeTaskWait(tTask * task, uint32_t ticks)
+{
+	task->delayTicks = ticks * 0.1;
+	tListAddFirst(&taskDelayList, &(task->delayNode));
+	task->state = TINYOS_TASK_STATE_DELAY;
+}
+
+void tTimeTaskWake(tTask * task)
+{
+	tListRemoveNode(&taskDelayList, &(task->delayNode));
+	task->state &= ~TINYOS_TASK_STATE_DELAY;
+}
+
+void tTaskScheduleReady(tTask * task)
+{
+	tBitmapSet(&taskProBitmap, task->prio);
+	taskTable[task->prio] = task;
+	task->state = TINYOS_TASK_STATE_RDY;
+}
+
+void tTaskScheduleUnReady(tTask * task)
+{
+	tBitmapClear(&taskProBitmap, task->prio);
+	taskTable[task->prio] = (tTask *)0;
+	task->state &= ~TINYOS_TASK_STATE_RDY;
+}
