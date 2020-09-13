@@ -28,6 +28,7 @@ typedef struct _tList
 #define tNodeParent(node, parent, name)   (parent *)((uint32_t)node - (uint32_t)&((parent *)0)->name)
 
 #define firstNode       headNode.nextNode
+#define secondNode      headNode.nextNode->nextNode
 #define lastNode        headNode.preNode
 
 void tNodeInit(tNode * node);
@@ -43,4 +44,5 @@ void tListRemoveNode(tList * list, tNode * node);
 void tListAddFirst(tList * list, tNode * node);
 void tListAddLast(tList * list, tNode * node);
 void tListInsertAfter(tList * list, tNode * nodeAfter, tNode * nodeToInsert);
+void tListInsertBefore(tList * list, tNode * nodeBefore, tNode * nodeToInsert);
 #endif

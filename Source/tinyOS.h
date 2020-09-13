@@ -14,6 +14,7 @@ typedef struct _tTask
 {
 	tTaskStack * stack;
 	uint32_t delayTicks;
+	uint32_t remainTicks;
 	uint32_t prio;
 	tNode delayNode;
 	uint32_t state;
@@ -24,6 +25,8 @@ extern tTask * nextTask;
 
 void task1Entry(void * param);
 void task2Entry(void * param);
+void task3Entry(void * param);
+void task4Entry(void * param);
 void taskIdleEntry(void);
 
 void tTaskInit(tTask * task, void (*entry), void * param, uint32_t prio, tTaskStack * stack);
@@ -46,7 +49,7 @@ tTask * tTaskHighestReady(void);
 
 void tTaskDelayListInit(void);
 void tTimeTaskWait(tTask * task, uint32_t ticks);
-void tTimeTaskWake(tTask * task);
+void tTimeTaskSeqWait(tTask * task, uint32_t ticks);
 void tTaskScheduleReady(tTask * task);
 void tTaskScheduleUnReady(tTask * task);
 

@@ -130,9 +130,21 @@ void tListInsertAfter(tList * list, tNode * nodeAfter, tNode * nodeToInsert)
 {
 	nodeToInsert->preNode = nodeAfter;
 	nodeToInsert->nextNode = nodeAfter->nextNode;
-	
+
+	nodeAfter->nextNode->preNode = nodeToInsert;	
 	nodeAfter->nextNode = nodeToInsert;
-	nodeAfter->nextNode->preNode = nodeToInsert;
 	
 	list->nodeCount++;
 }
+
+void tListInsertBefore(tList * list, tNode * nodeBefore, tNode * nodeToInsert)
+{
+	nodeToInsert->preNode = nodeBefore->preNode;
+	nodeToInsert->nextNode = nodeBefore;
+	
+	nodeBefore->preNode->nextNode = nodeToInsert;
+	nodeBefore->preNode = nodeToInsert;
+	
+	list->nodeCount++;
+}
+
