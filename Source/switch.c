@@ -9,11 +9,6 @@
 #define  MEM32(addr)          *(volatile unsigned long *)(addr)
 #define  MEM8(addr)           *(volatile unsigned char *)(addr)
 	
-extern int scheduleLockCount;
-extern tList taskTable[TINYOS_PRO_COUNT];
-extern tBitmap taskProBitmap;
-extern tList taskDelayList;
-	
 __asm void PendSV_Handler(void)
 {
 	/*在进入中断时编译器自动保存xPSR PC(R15) LR(R14) R12, R3-R0到PSP栈顶指针所指向的存储空间*/
@@ -65,136 +60,6 @@ void tTaskSwitch()
 	MEM32(NVIC_INT_CTRL) = NVIC_PENDSET;    //PendSVC悬起，进入PendSVC中断服务程序
 }
 
-void tTaskInit(tTask * task, void (*entry), void * param, uint32_t prio, tTaskStack * stack)
-{
-	/*******这一部分的寄存器是硬件自动保存到MSP或PSP的**************/
-	*(--stack) = (unsigned long)(1<<24);  // xPSR
-	*(--stack) = (unsigned long)entry;    // R15 PC寄存器的值设置为入口函数
-	*(--stack) = (unsigned long)0x14;     // R14 LR
-	*(--stack) = (unsigned long)0x12;     // R12 
-	*(--stack) = (unsigned long)0x03;     // R3
-	*(--stack) = (unsigned long)0x02;     // R2	
-	*(--stack) = (unsigned long)0x01;     // R1
-	*(--stack) = (unsigned long)param;    // R0  程序第一个参数
-
-	/************这一部分的寄存器需要手动保存***********************/	
-	*(--stack) = (unsigned long)0x11;     // R11	
-	*(--stack) = (unsigned long)0x10;     // R10
-    *(--stack) = (unsigned long)0x09;     // R09		
-	*(--stack) = (unsigned long)0x08;     // R08
-    *(--stack) = (unsigned long)0x07;     // R07
-    *(--stack) = (unsigned long)0x06;     // R06
-    *(--stack) = (unsigned long)0x05;     // R05
-    *(--stack) = (unsigned long)0x04;     // R04
-	
-	task->stack = stack;
-	task->delayTicks = 0;
-	task->remainTicks = 0;
-	
-	task->prio = prio;
-	tBitmapSet(&taskProBitmap, prio);
-	
-	task->state = TINYOS_TASK_STATE_RDY;
-	tNodeInit(&(task->delayNode));
-	
-	task->slice = TINYOS_SLICE_MAX;
-	tNodeInit(&(task->linkNode));
-	tListAddFirst(&taskTable[task->prio], &(task->linkNode));
-	
-}
-
-void tTaskSchedule()
-{
-	tTask * tempTask;
-	if(scheduleLockCount >0)
-	{
-		return;	
-	}
-	
-	tempTask = tTaskHighestReady();
-	if(currentTask != tempTask)
-	{
-		nextTask = tempTask;
-		tTaskSwitch();
-	}
-}
-
-/************时间片轮转**************/
-void tSetSysTickPeriod(uint32_t ms)
-{
-	SysTick->LOAD = ms * SystemCoreClock /1000 -1;              // 设置重载寄存器
-	NVIC_SetPriority(SysTick_IRQn, (1 << __NVIC_PRIO_BITS)-1);
-	SysTick->VAL =0;
-	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |
-	                SysTick_CTRL_TICKINT_Msk |
-	                SysTick_CTRL_ENABLE_Msk;
-}
-
-void SysTick_Handler()
-{
-	tTaskSystemTickHandler();
-}
-
-void tTaskSystemTickHandler(void)
-{
-	tNode * node = taskDelayList.firstNode;
-	
-	uint32_t status = tTaskEnterCritical();
-	
-	if(node != &(taskDelayList.headNode))
-	{
-		tTask * task = tNodeParent(node, tTask, delayNode);
-		tNode * afterNode = taskDelayList.firstNode->nextNode;
-		if(--task->remainTicks == 0)
-		{
-			tTimeTaskWake(task);
-			tTaskScheduleReady(task);
-			
-			tNode * readyNode;
-			tTask * readyTask;
-			for(readyNode = afterNode; readyNode != &(taskDelayList.headNode); readyNode=readyNode->nextNode)
-			{
-				readyTask = tNodeParent(readyNode, tTask, delayNode);
-				if(readyTask->remainTicks == 0)
-				{
-					tTimeTaskWake(readyTask);
-			        tTaskScheduleReady(readyTask);
-				}
-				else
-				{
-					break;
-				}
-			}
-		}
-	}
-	
-	if(--currentTask->slice ==0)
-	{
-		if(tListCount(&(taskTable[currentTask->prio])) >0)
-		{
-			tListRemoveFirst(&taskTable[currentTask->prio]);
-			tListAddLast(&taskTable[currentTask->prio], &(currentTask->linkNode));
-			currentTask->slice = TINYOS_SLICE_MAX;
-		}
-	}
-
-	tTaskExitCritical(status);
-	tTaskSchedule();
-}
-/***************End********************/
-
-
-/************延时触发切换**************/
-void tTaskDelay(uint32_t delay)
-{
-	uint32_t status = tTaskEnterCritical();
-	//tTimeTaskWait(currentTask, delay);
-    tTimeTaskWait(currentTask, delay);
-	tTaskScheduleUnReady(currentTask);
-	tTaskExitCritical(status);
-	
-	tTaskSchedule();
-}
 /***************End********************/
 
 
@@ -216,15 +81,7 @@ void tTaskExitCritical(uint32_t status)
 /**************调度锁****************/
 void tTaskScheduleInit()
 {
-	tTaskDelayListInit();
-	tBitmapInit(&taskProBitmap);
 	scheduleLockCount =0;
-	
-	int i;
-	for(i=0; i < TINYOS_PRO_COUNT; i++)
-	{
-		tListInit(&taskTable[i]);
-	}
 }
 
 void tScheduleLockEnable()
@@ -249,6 +106,15 @@ void tScheduleLockDisable()
 /***************End********************/
 
 /**************就绪列表****************/
+void tTaskReadyTableInit()
+{
+	int i;
+	for(i=0; i < TINYOS_PRO_COUNT; i++)
+	{
+		tListInit(&taskTable[i]);
+	}	
+}
+
 tTask * tTaskHighestReady()
 {
 	uint32_t highestPrio = tBitmapGetFirstSet(&taskProBitmap);
@@ -256,78 +122,6 @@ tTask * tTaskHighestReady()
 	return tNodeParent(node, tTask, linkNode);
 }
 
-/**************延时队列****************/
-void tTaskDelayListInit()
-{
-	tListInit(&taskDelayList);
-}
-
-void tTimeTaskWait(tTask * task, uint32_t ticks)
-{
-	task->delayTicks = (uint32_t)(ticks * 0.1);
-	if( taskDelayList.firstNode != &(taskDelayList.headNode) )
-	{
-		tTask * listFirstTask = tNodeParent(taskDelayList.firstNode, tTask, delayNode);
-		if(task->delayTicks < listFirstTask->remainTicks)
-		{
-			tListAddFirst(&taskDelayList, &(task->delayNode));
-			task->state = TINYOS_TASK_STATE_DELAY;
-			task->remainTicks = task->delayTicks;
-			listFirstTask->remainTicks -= task->remainTicks;		
-			return;
-		}
-		else
-		{
-	        tNode * nextNode;
-	        nextNode = taskDelayList.secondNode;
-			if(taskDelayList.secondNode != &(taskDelayList.headNode))
-			{
-				task->remainTicks = task->delayTicks - listFirstTask->remainTicks;
-			    uint8_t count;
-	            for(count = tListCount(&taskDelayList)-1; count>0; count--)
-	            {
-					tNode * current_Node = nextNode;
-					tTask * current_Task = tNodeParent(current_Node, tTask, delayNode);
-		            if(task->remainTicks < current_Task->remainTicks)
-				    {					
-						tListInsertBefore(&taskDelayList, current_Node, &(task->delayNode));
-                        current_Task->remainTicks -= task->remainTicks;
-						return;
-				    }
-					if(count == 1)
-					{
-						tListInsertAfter(&taskDelayList, current_Node, &(task->delayNode));
-                        task->remainTicks -= current_Task->remainTicks;						
-						return;		
-					}
-					task->remainTicks -= current_Task->remainTicks;
-					nextNode = nextNode->nextNode;
-				}
-
-	        } 
-			else
-			{
-				tListInsertAfter(&taskDelayList, taskDelayList.firstNode, &(task->delayNode));
-				task->remainTicks = task->delayTicks - listFirstTask->remainTicks;
-				return;
-		    }
-	    }
-	}
-	else
-	{
-		tListAddFirst(&taskDelayList, &(task->delayNode));
-		task->remainTicks = task->delayTicks;	
-        task->state = TINYOS_TASK_STATE_DELAY;		
-		return;
-	}
-}
-
-
-void tTimeTaskWake(tTask * task)
-{
-	tListRemoveFirst(&taskDelayList);
-	task->state &= ~TINYOS_TASK_STATE_DELAY;
-}
 
 void tTaskScheduleReady(tTask * task)
 {
