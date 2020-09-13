@@ -4,7 +4,7 @@
 tTask * currentTask;
 tTask * nextTask;
 
-tTask * taskTable[TINYOS_PRO_COUNT];
+tList taskTable[TINYOS_PRO_COUNT];
 tBitmap taskProBitmap;
 tList taskDelayList;
 
@@ -17,6 +17,7 @@ tTaskStack task1Stack[128];
 tTaskStack task2Stack[128];
 tTaskStack task3Stack[128];
 tTaskStack task4Stack[128];
+
 
 int task1Flag;
 int task2Flag;
@@ -33,17 +34,16 @@ int main()
 {
 	tSetSysTickPeriod(10);
 	tTaskScheduleInit();
-	tTaskDelayListInit();
 	
 	tTaskInit(&tTask1, task1Entry, (void *)0x11111111, 0, &task1Stack[128]);
 	tTaskInit(&tTask2, task2Entry, (void *)0x22222222, 1, &task2Stack[128]);
 	tTaskInit(&tTask3, task3Entry, (void *)0x33333333, 2, &task3Stack[128]);
-	tTaskInit(&tTask4, task4Entry, (void *)0x44444444, 4, &task4Stack[128]);
+	tTaskInit(&tTask4, task4Entry, (void *)0x44444444, 2, &task4Stack[128]);
+
 	
 	tTaskInit(&tTaskIdle, taskIdleEntry, (void *)0x33333333, TINYOS_PRO_COUNT-1, &taskIdleStack[1024]);
+
 	
-	taskTable[0] = &tTask1;
-	taskTable[1] = &tTask2;
 	idleTask = &tTaskIdle;
 	
 	nextTask = tTaskHighestReady();
@@ -64,6 +64,13 @@ void task1Entry(void * param)
 	}
 }
 
+void delay()
+{
+	int i;
+	for(i=0; i<0xFF; i++)
+	{}
+}
+
 void task2Entry(void * param)
 {
 	for(;;)
@@ -80,9 +87,11 @@ void task3Entry(void * param)
 	for(;;)
 	{
 		task3Flag =1;
-		tTaskDelay(40);
+		delay();
+		//tTaskDelay(40);
 		task3Flag =0;
-		tTaskDelay(80);
+		delay();
+		//tTaskDelay(80);
 	}
 }
 
@@ -91,9 +100,11 @@ void task4Entry(void * param)
 	for(;;)
 	{
 		task4Flag =1;
-		tTaskDelay(80);
+		delay();
+		//tTaskDelay(80);
 		task4Flag =0;
-		tTaskDelay(160);
+		delay();
+		//tTaskDelay(160);
 	}
 }
 

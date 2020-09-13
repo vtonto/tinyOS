@@ -10,7 +10,7 @@
 #define  MEM8(addr)           *(volatile unsigned char *)(addr)
 	
 extern int scheduleLockCount;
-extern tTask * taskTable[TINYOS_PRO_COUNT];
+extern tList taskTable[TINYOS_PRO_COUNT];
 extern tBitmap taskProBitmap;
 extern tList taskDelayList;
 	
@@ -93,10 +93,14 @@ void tTaskInit(tTask * task, void (*entry), void * param, uint32_t prio, tTaskSt
 	
 	task->prio = prio;
 	tBitmapSet(&taskProBitmap, prio);
-	taskTable[prio] = task;
 	
 	task->state = TINYOS_TASK_STATE_RDY;
 	tNodeInit(&(task->delayNode));
+	
+	task->slice = TINYOS_SLICE_MAX;
+	tNodeInit(&(task->linkNode));
+	tListAddFirst(&taskTable[task->prio], &(task->linkNode));
+	
 }
 
 void tTaskSchedule()
@@ -163,6 +167,16 @@ void tTaskSystemTickHandler(void)
 			}
 		}
 	}
+	
+	if(--currentTask->slice ==0)
+	{
+		if(tListCount(&(taskTable[currentTask->prio])) >0)
+		{
+			tListRemoveFirst(&taskTable[currentTask->prio]);
+			tListAddLast(&taskTable[currentTask->prio], &(currentTask->linkNode));
+			currentTask->slice = TINYOS_SLICE_MAX;
+		}
+	}
 
 	tTaskExitCritical(status);
 	tTaskSchedule();
@@ -202,8 +216,15 @@ void tTaskExitCritical(uint32_t status)
 /**************调度锁****************/
 void tTaskScheduleInit()
 {
+	tTaskDelayListInit();
 	tBitmapInit(&taskProBitmap);
 	scheduleLockCount =0;
+	
+	int i;
+	for(i=0; i < TINYOS_PRO_COUNT; i++)
+	{
+		tListInit(&taskTable[i]);
+	}
 }
 
 void tScheduleLockEnable()
@@ -231,7 +252,8 @@ void tScheduleLockDisable()
 tTask * tTaskHighestReady()
 {
 	uint32_t highestPrio = tBitmapGetFirstSet(&taskProBitmap);
-	return taskTable[highestPrio];
+	tNode * node = tListFirstNode(&taskTable[highestPrio]);
+	return tNodeParent(node, tTask, linkNode);
 }
 
 /**************延时队列****************/
@@ -310,13 +332,16 @@ void tTimeTaskWake(tTask * task)
 void tTaskScheduleReady(tTask * task)
 {
 	tBitmapSet(&taskProBitmap, task->prio);
-	taskTable[task->prio] = task;
+	tListAddFirst(&taskTable[task->prio], &(task->linkNode));
 	task->state = TINYOS_TASK_STATE_RDY;
 }
 
 void tTaskScheduleUnReady(tTask * task)
 {
-	tBitmapClear(&taskProBitmap, task->prio);
-	taskTable[task->prio] = (tTask *)0;
+	tListRemoveNode(&taskTable[task->prio], &(task->linkNode));
 	task->state &= ~TINYOS_TASK_STATE_RDY;
+	if(tListCount(&taskTable[task->prio]) == 0)
+	{
+	    tBitmapClear(&taskProBitmap, task->prio);
+	}
 }
