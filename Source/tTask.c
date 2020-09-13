@@ -67,6 +67,8 @@ void tTaskSchedule()
 
 void tTaskSuspend(tTask * task)
 {
+	uint32_t status = tTaskEnterCritical();
+	
 	if(!(task->state & TINYOS_TASK_STATE_SUSPEND))
 	{
 		if(++task->suspendCount <=1)
@@ -79,14 +81,20 @@ void tTaskSuspend(tTask * task)
 			}
 		}
 	}
+	
+	tTaskExitCritical(status);
 }
 
 void tTaskResume(tTask * task)
 {
+	uint32_t status = tTaskEnterCritical();
+	
 	if(--task->suspendCount ==0)
 	{
 		tTaskScheduleReady(task);
 		task->state &= ~TINYOS_TASK_STATE_SUSPEND;
 		tTaskSchedule();
 	}
+	
+	tTaskExitCritical(status);
 }
