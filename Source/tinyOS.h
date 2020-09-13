@@ -49,7 +49,7 @@ tTask * tTaskHighestReady(void);
 
 void tTaskDelayListInit(void);
 void tTimeTaskWait(tTask * task, uint32_t ticks);
-void tTimeTaskSeqWait(tTask * task, uint32_t ticks);
+void tTimeTaskWake(tTask * task);
 void tTaskScheduleReady(tTask * task);
 void tTaskScheduleUnReady(tTask * task);
 

@@ -175,7 +175,7 @@ void tTaskDelay(uint32_t delay)
 {
 	uint32_t status = tTaskEnterCritical();
 	//tTimeTaskWait(currentTask, delay);
-    tTimeTaskSeqWait(currentTask, delay);
+    tTimeTaskWait(currentTask, delay);
 	tTaskScheduleUnReady(currentTask);
 	tTaskExitCritical(status);
 	
@@ -240,7 +240,7 @@ void tTaskDelayListInit()
 	tListInit(&taskDelayList);
 }
 
-void tTimeTaskSeqWait(tTask * task, uint32_t ticks)
+void tTimeTaskWait(tTask * task, uint32_t ticks)
 {
 	task->delayTicks = (uint32_t)(ticks * 0.1);
 	if( taskDelayList.firstNode != &(taskDelayList.headNode) )
