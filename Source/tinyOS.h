@@ -17,6 +17,9 @@ typedef struct _tTask
 	uint32_t prio;
 	tNode delayNode;
 	uint32_t state;
+	
+	tNode linkNode;
+	uint32_t slice;
 }tTask;
 
 extern tTask * currentTask;
@@ -24,6 +27,7 @@ extern tTask * nextTask;
 
 void task1Entry(void * param);
 void task2Entry(void * param);
+void task3Entry(void * param);
 void taskIdleEntry(void);
 
 void tTaskInit(tTask * task, void (*entry), void * param, uint32_t prio, tTaskStack * stack);
