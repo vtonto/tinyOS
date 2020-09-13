@@ -45,6 +45,8 @@ void tTaskInit(tTask * task, void (*entry), void * param, uint32_t prio, tTaskSt
 	tNodeInit(&(task->linkNode));
 	tListAddFirst(&taskTable[task->prio], &(task->linkNode));
 	
+	task->suspendCount = 0;
+	
 }
 
 void tTaskSchedule()
@@ -60,5 +62,31 @@ void tTaskSchedule()
 	{
 		nextTask = tempTask;
 		tTaskSwitch();
+	}
+}
+
+void tTaskSuspend(tTask * task)
+{
+	if(!(task->state & TINYOS_TASK_STATE_SUSPEND))
+	{
+		if(++task->suspendCount <=1)
+		{
+			task->state = TINYOS_TASK_STATE_SUSPEND;
+			tTaskScheduleUnReady(task);
+			if(task == currentTask)
+			{
+				tTaskSchedule();
+			}
+		}
+	}
+}
+
+void tTaskResume(tTask * task)
+{
+	if(--task->suspendCount ==0)
+	{
+		tTaskScheduleReady(task);
+		task->state &= ~TINYOS_TASK_STATE_SUSPEND;
+		tTaskSchedule();
 	}
 }

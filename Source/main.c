@@ -9,7 +9,7 @@ tBitmap taskProBitmap;
 tList taskDelayList;
 
 tTask tTaskIdle;
-tTaskStack taskIdleStack[1024];
+tTaskStack taskIdleStack[TINYOS_IDLETASK_STACK];
 tTask * idleTask;
 
 int scheduleLockCount;
@@ -20,7 +20,7 @@ int main()
 	tSystemInit();
 
 	tInitApp();
-	tTaskInit(&tTaskIdle, taskIdleEntry, (void *)0x33333333, TINYOS_PRO_COUNT-1, &taskIdleStack[1024]);
+	tTaskInit(&tTaskIdle, taskIdleEntry, (void *)0x33333333, TINYOS_PRO_COUNT-1, &taskIdleStack[TINYOS_IDLETASK_STACK]);
 
 	idleTask = &tTaskIdle;
 	

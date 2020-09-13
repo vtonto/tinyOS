@@ -13,7 +13,8 @@ extern tBitmap taskProBitmap;
 extern tList taskDelayList;
 
 #define TINYOS_TASK_STATE_RDY              0
-#define TINYOS_TASK_STATE_DELAY     (1 << 1)
+#define TINYOS_TASK_STATE_DELAY            (1 << 1)
+#define TINYOS_TASK_STATE_SUSPEND          (1 << 2)
 
 
 typedef struct _tTask
@@ -70,6 +71,9 @@ void tTimeTaskWake(tTask * task);
 void tTaskReadyTableInit(void);
 void tTaskScheduleReady(tTask * task);
 void tTaskScheduleUnReady(tTask * task);
+
+void tTaskSuspend(tTask * task);
+void tTaskResume(tTask * task);
 
 #endif
 
