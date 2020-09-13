@@ -29,17 +29,10 @@ void task1Entry(void * param)
 	for(;;)
 	{
 		task1Flag =1;
-		tTaskDelay(10);	
+		tTaskSuspend(currentTask);
 		task1Flag =0;
-		tTaskDelay(20);
+		tTaskSuspend(currentTask);
 	}
-}
-
-void delay()
-{
-	int i;
-	for(i=0; i<0xFF; i++)
-	{}
 }
 
 void task2Entry(void * param)
@@ -47,9 +40,11 @@ void task2Entry(void * param)
 	for(;;)
 	{
 		task2Flag =1;
-		tTaskDelay(20);
+		tTaskDelay(10);
+		tTaskResume(&tTask1);
 		task2Flag =0;
-		tTaskDelay(40);
+		tTaskDelay(10);
+		tTaskResume(&tTask1);
 	}
 }
 
@@ -58,11 +53,9 @@ void task3Entry(void * param)
 	for(;;)
 	{
 		task3Flag =1;
-		delay();
-		//tTaskDelay(40);
+		tTaskDelay(10);
 		task3Flag =0;
-		delay();
-		//tTaskDelay(80);
+		tTaskDelay(10);
 	}
 }
 
@@ -71,10 +64,8 @@ void task4Entry(void * param)
 	for(;;)
 	{
 		task4Flag =1;
-		delay();
-		//tTaskDelay(80);
+		tTaskDelay(10);
 		task4Flag =0;
-		delay();
-		//tTaskDelay(160);
+		tTaskDelay(10);
 	}
 }
