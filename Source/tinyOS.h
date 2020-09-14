@@ -30,6 +30,10 @@ typedef struct _tTask
 	uint32_t slice;
 	
 	uint32_t suspendCount;
+	
+	void (* clean)(void * param);
+	void * cleanParam;
+	uint8_t requestDeleteFlag;
 }tTask;
 
 extern tTask * currentTask;
@@ -67,13 +71,21 @@ tTask * tTaskHighestReady(void);
 void tTaskDelayListInit(void);
 void tTimeTaskWait(tTask * task, uint32_t ticks);
 void tTimeTaskWake(tTask * task);
+void tTimeTaskRemove(tTask * task);
 
 void tTaskReadyTableInit(void);
 void tTaskScheduleReady(tTask * task);
 void tTaskScheduleUnReady(tTask * task);
+void tTaskReadyRemove(tTask * task);
 
 void tTaskSuspend(tTask * task);
 void tTaskResume(tTask * task);
+
+void tTaskSetAllCleanFunc(tTask * task, void(*clean)(void * param), void * cleanParam);
+void tTaskForceDelete(tTask * task);
+void tTaskRequestDelete(tTask * task);
+uint8_t tTaskRequestDetect(void);
+void tTaskDeleteSelf(void);
 
 #endif
 
