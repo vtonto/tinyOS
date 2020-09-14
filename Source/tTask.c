@@ -6,7 +6,7 @@ void tSystemInit()
 	tBitmapInit(&taskProBitmap);
 	tTaskScheduleInit();
 	tTaskReadyTableInit();
-
+    tSetSysTickPeriod(10);
 }
 
 void tTaskInit(tTask * task, void (*entry), void * param, uint32_t prio, tTaskStack * stack)
@@ -47,7 +47,7 @@ void tTaskInit(tTask * task, void (*entry), void * param, uint32_t prio, tTaskSt
 	
 	task->suspendCount = 0;
 	
-	task->clean =(void *)((void *)0);
+	task->clean = (void(*)(void *))0;
 	task->cleanParam = (void *)0;
 	task->requestDeleteFlag = 0;
 }
@@ -160,6 +160,21 @@ void tTaskDeleteSelf()
 	}
 	
 	tTaskSchedule();
+	
+	tTaskExitCritical(status);
+}
+
+void tTaskGetInfo(tTask * task, tTaskInfo * taskInfo)
+{
+	uint32_t status = tTaskEnterCritical();
+	
+	taskInfo->delayTicks = task->delayTicks;
+	taskInfo->prio = task->prio;
+	taskInfo->remainTicks = task->remainTicks;
+	taskInfo->requestDeleteFlag = task->requestDeleteFlag;
+	taskInfo->slice = task->slice;
+	taskInfo->state = task->state;
+	taskInfo->suspendCount = task->suspendCount;
 	
 	tTaskExitCritical(status);
 }

@@ -24,14 +24,23 @@ void tInitApp()
 	tTaskInit(&tTask4, task4Entry, (void *)0x44444444, 2, &task4Stack[128]);
 }
 
+void task1Clean(void * param)
+{
+	task1Flag = 0;
+}
+
 void task1Entry(void * param)
-{	
+{
+	tTaskInfo info;
 	for(;;)
 	{
+		tTaskGetInfo(currentTask, &info);
+		
+		tTaskGetInfo(&tTask2, &info);
 		task1Flag =1;
-		tTaskSuspend(currentTask);
+		tTaskDelay(10);
 		task1Flag =0;
-		tTaskSuspend(currentTask);
+		tTaskDelay(10);
 	}
 }
 
@@ -40,11 +49,9 @@ void task2Entry(void * param)
 	for(;;)
 	{
 		task2Flag =1;
-		tTaskDelay(10);
-		tTaskResume(&tTask1);
+		tTaskDelay(10);	
 		task2Flag =0;
 		tTaskDelay(10);
-		tTaskResume(&tTask1);
 	}
 }
 

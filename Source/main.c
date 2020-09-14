@@ -16,10 +16,10 @@ int scheduleLockCount;
 
 int main()
 {
-	tSetSysTickPeriod(10);
 	tSystemInit();
 
 	tInitApp();
+	
 	tTaskInit(&tTaskIdle, taskIdleEntry, (void *)0x33333333, TINYOS_PRO_COUNT-1, &taskIdleStack[TINYOS_IDLETASK_STACK]);
 
 	idleTask = &tTaskIdle;
