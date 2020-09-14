@@ -139,3 +139,13 @@ void tTaskScheduleUnReady(tTask * task)
 	    tBitmapClear(&taskProBitmap, task->prio);
 	}
 }
+
+void tTaskReadyRemove(tTask * task)
+{
+	tListRemoveNode(&taskTable[task->prio], &(task->linkNode));
+	
+	if(tListCount(&taskTable[task->prio]) ==0)
+	{
+		tBitmapClear(&taskProBitmap, task->prio);
+	}
+}

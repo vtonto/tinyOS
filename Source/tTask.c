@@ -101,3 +101,65 @@ void tTaskResume(tTask * task)
 	
 	tTaskExitCritical(status);
 }
+
+void tTaskSetAllCleanFunc(tTask * task, void (*clean)(void * param), void * cleanParam)
+{
+	task->clean = clean;
+	task->cleanParam = cleanParam;
+}
+
+void tTaskForceDelete(tTask * task)
+{
+	uint32_t status = tTaskEnterCritical();
+	
+	if(task->state & TINYOS_TASK_STATE_DELAY)
+	{
+		tTimeTaskRemove(task);
+	}
+	else if(!(task->state & TINYOS_TASK_STATE_SUSPEND))
+	{
+		tTaskReadyRemove(task);
+	}
+	
+	if(task->clean)
+	{
+		task->clean(task->cleanParam);
+	}
+	
+	if(task == currentTask)
+	{
+		tTaskSchedule();
+	}
+	
+	tTaskExitCritical(status);
+}
+
+void tTaskRequestDelete(tTask * task)
+{
+	uint32_t status = tTaskEnterCritical();
+	
+	task->requestDeleteFlag =1;
+	
+	tTaskExitCritical(status);
+}
+
+uint8_t tTaskRequestDetect()
+{
+	uint8_t flag = currentTask->requestDeleteFlag;
+	return flag;
+}
+
+void tTaskDeleteSelf()
+{
+	uint32_t status = tTaskEnterCritical();
+	
+	tTaskReadyRemove(currentTask);
+	if(currentTask->clean)
+	{
+		currentTask->clean(currentTask->cleanParam);
+	}
+	
+	tTaskSchedule();
+	
+	tTaskExitCritical(status);
+}

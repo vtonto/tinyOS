@@ -82,3 +82,8 @@ void tTimeTaskWake(tTask * task)
 	tListRemoveFirst(&taskDelayList);
 	task->state &= ~TINYOS_TASK_STATE_DELAY;
 }
+
+void tTimeTaskRemove(tTask * task)
+{
+	tListRemoveNode(&taskDelayList, &(task->delayNode));
+}
