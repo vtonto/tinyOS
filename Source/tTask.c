@@ -50,6 +50,10 @@ void tTaskInit(tTask * task, void (*entry), void * param, uint32_t prio, tTaskSt
 	task->clean = (void(*)(void *))0;
 	task->cleanParam = (void *)0;
 	task->requestDeleteFlag = 0;
+	
+	task->waitingEvent = (tEvent *)0;
+	task->eventWaitingResult =0;
+	task->waitingMsg = (void *)0;
 }
 
 void tTaskSchedule()

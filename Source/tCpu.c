@@ -28,6 +28,10 @@ void tTaskSystemTickHandler(void)
 		tNode * afterNode = taskDelayList.firstNode->nextNode;
 		if(--task->remainTicks == 0)
 		{
+			if(task->waitingEvent)
+			{
+				tEventRemoveTask(task, (void *)0, tErrorTimeOut);
+			}
 			tTimeTaskWake(task);
 			tTaskScheduleReady(task);
 			
@@ -38,6 +42,10 @@ void tTaskSystemTickHandler(void)
 				readyTask = tNodeParent(readyNode, tTask, delayNode);
 				if(readyTask->remainTicks == 0)
 				{
+					if(task->waitingEvent)
+			        {
+				        tEventRemoveTask(task, (void *)0, tErrorTimeOut);
+			        }
 					tTimeTaskWake(readyTask);
 			        tTaskScheduleReady(readyTask);
 				}
