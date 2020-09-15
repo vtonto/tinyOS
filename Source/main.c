@@ -17,6 +17,7 @@ int scheduleLockCount;
 int main()
 {
 	tList * ptr = taskTable;
+	ptr++;
 	tSystemInit();
 
 	tInitApp();

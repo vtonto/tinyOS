@@ -6,6 +6,7 @@
 #include "tConfig.h"
 #include "tTask.h"
 #include "tEvent.h"
+#include "tSem.h"
 
 extern int scheduleLockCount;
 extern tList taskTable[TINYOS_PRO_COUNT];
@@ -19,6 +20,8 @@ typedef enum _tError
 {
 	tErrorNoError =0,
 	tErrorTimeOut =1,
+	tErrorResourceUnavaliable,
+	tErrorDestory,
 }tError;
 
 void tInitApp(void);
