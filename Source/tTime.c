@@ -18,11 +18,12 @@ void tTaskDelay(uint32_t delay)
 
 void tTimeTaskWait(tTask * task, uint32_t ticks)
 {
-	task->delayTicks = (uint32_t)(ticks * 0.1);
+	task->delayTicks = (uint32_t)(ticks);
+	task->remainTicks = task->delayTicks;
 	if( taskDelayList.firstNode != &(taskDelayList.headNode) )
 	{
 		tTask * listFirstTask = tNodeParent(taskDelayList.firstNode, tTask, delayNode);
-		if(task->delayTicks < listFirstTask->remainTicks)
+		if(task->remainTicks < listFirstTask->remainTicks)
 		{
 			tListAddFirst(&taskDelayList, &(task->delayNode));
 			task->state = TINYOS_TASK_STATE_DELAY;
@@ -79,6 +80,7 @@ void tTimeTaskWait(tTask * task, uint32_t ticks)
 
 void tTimeTaskWake(tTask * task)
 {
+	task->delayTicks = 0;
 	tListRemoveFirst(&taskDelayList);
 	task->state &= ~TINYOS_TASK_STATE_DELAY;
 }
