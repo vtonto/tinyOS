@@ -67,3 +67,47 @@ void tEventRemoveTask(tTask * task, void * msg, uint32_t result)
 	
 	tTaskExitCritical(status);
 }
+
+uint32_t tEventRemoveAll(tEvent * event, void * msg, uint32_t result)
+{
+	uint32_t status = tTaskEnterCritical();
+	
+	tNode * node;
+	tTask * task;
+	uint32_t count = tListCount(&event->waitingList);
+	
+	while((node = tListRemoveFirst(&event->waitingList)) != (tNode *)0)
+	{
+		task = (tTask *)tNodeParent(node, tTask, linkNode);
+		task->waitingEvent = (tEvent *)0;
+		task->eventWaitingResult = result;
+		task->waitingMsg = msg;
+		task->state &= ~TINYOS_TASK_WAIT_MASK;
+		
+		if(task->delayTicks)
+		{
+			tTimeTaskWake(task);
+		}
+		
+		tTaskScheduleReady(task);
+	}
+	
+	tTaskExitCritical(status);
+	
+	return count;
+}
+
+uint32_t tEventWaitCount(tEvent * event)
+{
+	uint32_t count =0;
+	
+	uint32_t status = tTaskEnterCritical();
+	
+	count = tListCount(&event->waitingList);
+
+	tTaskExitCritical(status);	
+	
+	return count;
+}
+
+
