@@ -3,7 +3,7 @@
 void tSemInit(tSem * sem, uint32_t startCount, uint32_t maxCount)
 {
 	sem->maxCount = maxCount;
-	tEventInit(&sem->event, tEventTypeUnKnow);
+	tEventInit(&sem->event, tEventTypeSem);
 	
 	if(sem->maxCount ==0)
 	{
