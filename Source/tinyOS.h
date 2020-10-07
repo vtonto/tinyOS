@@ -8,6 +8,7 @@
 #include "tEvent.h"
 #include "tSem.h"
 #include "tMbox.h"
+#include "tMemBlock.h"
 
 extern int scheduleLockCount;
 extern tList taskTable[TINYOS_PRO_COUNT];

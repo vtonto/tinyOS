@@ -9,6 +9,7 @@ typedef enum _tEventType
 	tEventTypeUnKnow=0,
 	tEventTypeMbox,
 	tEventTypeSem,
+	tEventTypeMemBlock,
 }tEventType;
 
 typedef struct _tEvent
