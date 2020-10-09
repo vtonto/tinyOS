@@ -10,6 +10,7 @@ typedef enum _tEventType
 	tEventTypeMbox,
 	tEventTypeSem,
 	tEventTypeMemBlock,
+	tEventTypeFlagGroup,
 }tEventType;
 
 typedef struct _tEvent
