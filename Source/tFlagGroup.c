@@ -69,10 +69,9 @@ uint32_t tFlagGroupWait(tFlagGroup * flagGroup, uint32_t waitType, uint32_t requ
 uint32_t tFlagGroupNoWaitGet(tFlagGroup * flagGroup, uint32_t waitType, uint32_t requestFlag, uint32_t *resultFlag)
 {
 	uint32_t flags = requestFlag;
-	uint32_t result;
 	uint32_t status = tTaskEnterCritical();
 	
-	result = tFlagGroupCheckAndConsume(flagGroup, waitType, &flags);
+	uint32_t result = tFlagGroupCheckAndConsume(flagGroup, waitType, &flags);
 	
 	tTaskExitCritical(status);
 	
@@ -120,3 +119,30 @@ void tFlagGroupNotify(tFlagGroup * flagGroup, uint8_t isSet, uint32_t flag)
 	
 	tTaskExitCritical(status);
 }
+
+void tFlagGroupGetInfo(tFlagGroup * flagGroup, tFlagGroupInfo * info)
+{
+	uint32_t status = tTaskEnterCritical();
+	
+	info->flags = flagGroup->flag;
+	info->taskCount = tEventWaitCount(&flagGroup->event);
+	
+	tTaskExitCritical(status);
+}
+
+uint32_t tFlagGroupDestory(tFlagGroup * flagGroup)
+{
+	uint32_t status = tTaskEnterCritical();
+	
+	uint32_t count = tEventRemoveAll(&flagGroup->event, (void *)0, tErrorDelete);
+	
+	tTaskExitCritical(status);
+	
+	if(count>0)
+	{
+		tTaskSchedule();
+	}
+	
+	return count;
+}
+
