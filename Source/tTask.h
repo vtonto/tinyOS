@@ -36,6 +36,9 @@ typedef struct _tTask
 	struct _tEvent * waitingEvent;
 	void * waitingMsg;
 	uint32_t eventWaitingResult;
+	
+	uint32_t waitFlagsType;
+	uint32_t eventFlags;
 }tTask;
 
 typedef struct _tTaskInfo

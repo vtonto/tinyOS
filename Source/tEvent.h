@@ -25,4 +25,5 @@ tTask * tEventWake(tEvent * event, void * msg, uint32_t result);
 void tEventRemoveTask(tTask * task, void * msg, uint32_t result);
 uint32_t tEventRemoveAll(tEvent * event, void * msg, uint32_t result);
 uint32_t tEventWaitCount(tEvent * event);
+tTask * tEventWakeTask(tEvent * event, tTask * task, void * msg, uint32_t result);
 #endif

@@ -110,4 +110,28 @@ uint32_t tEventWaitCount(tEvent * event)
 	return count;
 }
 
+tTask * tEventWakeTask(tEvent * event, tTask * task, void * msg, uint32_t result)
+{
+	tNode * node;
+	
+	uint32_t status = tTaskEnterCritical();
+	
+	tListRemoveNode(&event->waitingList, &task->linkNode);
+	task->waitingEvent = (tEvent *)0;
+	task->waitingMsg = msg;
+	task->eventWaitingResult = result;
+	task->state &= ~TINYOS_TASK_WAIT_MASK;
+		
+	if(task->delayTicks !=0)
+	{
+		tTimeTaskRemove(task);
+	}
+		
+	tTaskScheduleReady(task);
+
+	
+	tTaskExitCritical(status);	
+	
+	return task;
+}
 
